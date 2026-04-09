@@ -1,6 +1,5 @@
 "use server"
 
-import { redirect } from "next/navigation"
 import { generateQuizOrFlashcard } from "@/lib/ai"
 
 async function extractPDF(buffer: Buffer): Promise<string> {
@@ -73,6 +72,5 @@ export async function generateContent(formData: FormData) {
   }
 
   const data = await generateQuizOrFlashcard(notes, mode, count)
-  const encoded = encodeURIComponent(JSON.stringify(data))
-  redirect(`/${mode}?data=${encoded}`)
+  return { mode, data }
 }

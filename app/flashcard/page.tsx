@@ -1,7 +1,6 @@
 "use client"
 
-import { useState } from "react"
-import { useSearchParams } from "next/navigation"
+import { useState, useEffect } from "react"
 import { Flashcard } from "@/components/Flashcard"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight, Zap, Home } from "lucide-react"
@@ -15,18 +14,21 @@ const FALLBACK_CARDS: FlashcardItem[] = [
 ]
 
 export default function FlashcardPage() {
-  const searchParams = useSearchParams()
-  const rawData = searchParams.get("data")
+  const [cards, setCards] = useState<FlashcardItem[]>(FALLBACK_CARDS)
 
-  const cards: FlashcardItem[] = (() => {
-    if (!rawData) return FALLBACK_CARDS
+  useEffect(() => {
     try {
-      const parsed = JSON.parse(decodeURIComponent(rawData))
-      return Array.isArray(parsed) && parsed.length > 0 ? parsed : FALLBACK_CARDS
+      const raw = sessionStorage.getItem("quizzy_session")
+      if (raw) {
+        const parsed = JSON.parse(raw)
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setCards(parsed)
+        }
+      }
     } catch {
-      return FALLBACK_CARDS
+      // fall back to FALLBACK_CARDS
     }
-  })()
+  }, [])
 
   const total = cards.length
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -68,7 +70,7 @@ export default function FlashcardPage() {
               Home
             </Button>
           </Link>
-          <Link href={`/quiz${rawData ? `?data=${rawData}` : ""}`}>
+          <Link href="/quiz">
             <Button variant="outline" className="rounded-2xl gap-2 font-bold border-2">
               <Zap className="w-4 h-4 text-yellow-500" />
               Switch Quiz

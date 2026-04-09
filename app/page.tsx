@@ -1,6 +1,7 @@
 "use client"
 
 import { useRef, useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
 import { Sidebar } from "@/components/Sidebar"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -12,6 +13,7 @@ type Mode = "quiz" | "flashcard"
 type QuizSize = 8 | 10 | 12
 
 export default function HomePage() {
+  const router = useRouter()
   const [mode, setMode] = useState<Mode>("quiz")
   const [quizSize, setQuizSize] = useState<QuizSize>(10)
   const [notes, setNotes] = useState("")
@@ -48,9 +50,10 @@ export default function HomePage() {
       if (file) formData.append("file", file)
 
       try {
-        await generateContent(formData)
+        const result = await generateContent(formData)
+        sessionStorage.setItem("quizzy_session", JSON.stringify(result.data))
+        router.push(`/${result.mode}`)
       } catch (err: any) {
-        if (err?.message?.includes("NEXT_REDIRECT")) return
         setError(err?.message || "Something went wrong. Please try again.")
       }
     })
