@@ -3,18 +3,18 @@
 import { useRef, useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { Sidebar } from "@/components/Sidebar"
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { ArrowRight, Upload, Zap, BookOpen, FileText, X, Loader2 } from "lucide-react"
+import { Sparkles, Upload, ArrowRight, Loader2, Layers, BrainCircuit, X, Zap } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { generateContent } from "@/app/actions"
 
 type Mode = "quiz" | "flashcard"
-type QuizSize = 8 | 10 | 12
+type Intensity = "easy" | "medium" | "hard" | "mixed"
+type QuizSize = 5 | 10 | 15 | 20
 
 export default function HomePage() {
   const router = useRouter()
   const [mode, setMode] = useState<Mode>("quiz")
+  const [intensity, setIntensity] = useState<Intensity>("mixed")
   const [quizSize, setQuizSize] = useState<QuizSize>(10)
   const [notes, setNotes] = useState("")
   const [file, setFile] = useState<File | null>(null)
@@ -38,7 +38,7 @@ export default function HomePage() {
   function handleSubmit() {
     setError(null)
     if (!notes.trim() && !file) {
-      setError("Please paste your notes or upload a file.")
+      setError("Please provide study materials.")
       return
     }
 
@@ -46,82 +46,96 @@ export default function HomePage() {
       const formData = new FormData()
       formData.append("mode", mode)
       formData.append("count", String(quizSize))
+      formData.append("difficulty", intensity)
       formData.append("notes", notes)
       if (file) formData.append("file", file)
 
       try {
         const result = await generateContent(formData)
-        sessionStorage.setItem("quizzy_session", JSON.stringify(result.data))
+        sessionStorage.setItem("quizzy_session", JSON.stringify({ ...result.data, difficulty: intensity }))
         router.push(`/${result.mode}`)
       } catch (err: any) {
-        setError(err?.message || "Something went wrong. Please try again.")
+        setError(err?.message || "Synthesis failed. Please try again.")
       }
     })
   }
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
-      {/* Sidebar - Hidden on mobile */}
-      <Sidebar className="hidden lg:flex" />
+    <div className="flex h-screen bg-[#F8FAFC] font-sans selection:bg-indigo-500 selection:text-white relative overflow-hidden">
+      
+      {/* Background Decor: Aurora Orbs */}
+      <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-indigo-300 rounded-full mix-blend-multiply filter blur-[100px] opacity-30 animate-pulse -translate-x-1/2 -translate-y-1/2"></div>
+      <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-purple-300 rounded-full mix-blend-multiply filter blur-[120px] opacity-30 translate-x-1/3 translate-y-1/3"></div>
+      
+      {/* Sidebar */}
+      <Sidebar className="hidden lg:flex z-20" />
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col items-center justify-center p-6 md:p-12 overflow-y-auto">
-        <div className="w-full max-w-4xl space-y-12 text-center">
-
-          {/* Hero */}
-          <div className="space-y-4">
-            <h1 className="text-6xl md:text-7xl font-black tracking-tight text-foreground">
-              Quizzy <span className="text-primary">AI</span>
+      <main className="flex-1 flex flex-col items-center pt-16 md:pt-20 px-6 md:px-12 overflow-y-auto relative z-10 w-full">
+        
+        <div className="w-full max-w-5xl flex flex-col items-center space-y-10">
+          
+          {/* Hero Section */}
+          <div className="text-center space-y-5 flex flex-col items-center animate-in fade-in slide-in-from-bottom-8 duration-700">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-indigo-500/20 bg-white/40 shadow-sm backdrop-blur-md text-[11px] font-bold tracking-[0.1em] text-indigo-700 uppercase">
+              <Zap className="w-3 h-3 text-indigo-500 shrink-0" />
+              AI-Powered Cognitive Engine
+            </div>
+            
+            <h1 className="text-5xl md:text-7xl text-slate-900 font-extrabold tracking-tight">
+              Master Your <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">
+                Knowledge Base
+              </span>
             </h1>
-            <p className="text-xl md:text-2xl text-muted-foreground font-medium">
-              Learn any topic with fun
+            
+            <p className="text-slate-500 text-lg md:text-xl font-medium max-w-lg mx-auto">
+              Transform documents and notes into powerful study tools instantly with artificial intelligence.
             </p>
           </div>
 
-          {/* Main Card */}
-          <Card className="p-8 md:p-12 bg-card/60 backdrop-blur-md border-2 rounded-[3rem] shadow-2xl relative overflow-hidden">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
-
-              {/* Left: Notes Input */}
-              <div className="space-y-4">
-                {/* Textarea */}
-                {!file && (
-                  <textarea
-                    value={notes}
-                    onChange={(e) => { setNotes(e.target.value); setError(null) }}
-                    placeholder="Paste your notes here..."
-                    rows={8}
-                    className={cn(
-                      "w-full resize-none rounded-[1.5rem] border-2 border-dashed bg-background/60 p-5 text-sm",
-                      "placeholder:text-muted-foreground focus:outline-none focus:border-primary/60 transition-colors",
-                      "hover:border-primary/40"
-                    )}
-                  />
-                )}
-
-                {/* File Preview */}
-                {file && (
-                  <div className="aspect-square rounded-[2rem] border-2 border-primary/40 bg-primary/5 flex flex-col items-center justify-center gap-4 p-6 relative">
-                    <div className="p-5 rounded-3xl bg-accent">
-                      <FileText className="w-10 h-10 text-primary" />
+          {/* Main Interface Card (Glassmorphism) */}
+          <div className="w-full bg-white/60 backdrop-blur-3xl rounded-[2.5rem] border border-white/80 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] p-8 md:p-10 transition-all duration-300 hover:shadow-[0_25px_60px_-15px_rgba(99,102,241,0.1)]">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-10 lg:gap-16">
+              
+              {/* Left Column: Input */}
+              <div className="flex flex-col h-full space-y-6">
+                <div className="bg-slate-50/50 rounded-3xl border border-slate-200/60 p-6 flex-1 min-h-[300px] flex flex-col transition-all focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-300">
+                  {!file ? (
+                    <textarea
+                      value={notes}
+                      onChange={(e) => { setNotes(e.target.value); setError(null) }}
+                      placeholder="Enter the text or topics you want to study..."
+                      className="w-full h-full resize-none bg-transparent placeholder:text-slate-400 text-slate-700 text-lg font-medium focus:outline-none placeholder:font-normal leading-relaxed"
+                    />
+                  ) : (
+                    <div className="w-full h-full rounded-2xl border-2 border-dashed border-indigo-200 bg-indigo-50/50 flex flex-col items-center justify-center p-8 relative group">
+                      <div className="p-4 rounded-xl bg-white shadow-sm mb-4 group-hover:scale-110 transition-transform">
+                        <Layers className="w-8 h-8 text-indigo-600" />
+                      </div>
+                      <p className="text-lg font-bold text-slate-800 mb-1 max-w-[200px] truncate">{file.name}</p>
+                      <p className="text-sm text-slate-500">{(file.size / 1024).toFixed(1)} KB</p>
+                      <button onClick={removeFile} className="absolute top-4 right-4 p-2 rounded-full bg-white text-slate-400 hover:text-red-500 hover:bg-red-50 shadow-sm transition-all focus:outline-none">
+                        <X className="w-4 h-4" />
+                      </button>
                     </div>
-                    <div className="text-center">
-                      <p className="text-base font-bold truncate max-w-[180px]">{file.name}</p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {(file.size / 1024).toFixed(1)} KB
-                      </p>
-                    </div>
-                    <button
-                      onClick={removeFile}
-                      className="absolute top-4 right-4 p-1.5 rounded-full bg-muted hover:bg-destructive hover:text-white transition-colors"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                )}
+                  )}
+                </div>
 
-                {/* Upload Button */}
+                <div className="flex items-center gap-4">
+                  <div className="flex-1 h-px bg-slate-200"></div>
+                  <span className="text-xs font-semibold text-slate-400 uppercase tracking-widest">or upload file</span>
+                  <div className="flex-1 h-px bg-slate-200"></div>
+                </div>
+
                 <div>
+                  <button 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full bg-white border border-slate-200 hover:border-indigo-300 rounded-[1.5rem] py-4 flex items-center justify-center gap-3 text-slate-600 hover:text-indigo-600 shadow-sm transition-all hover:shadow-md active:scale-[0.98]"
+                  >
+                    <Upload className="w-5 h-5" />
+                    <span className="font-bold">Select Document (PDF, DOCX)</span>
+                  </button>
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -129,107 +143,113 @@ export default function HomePage() {
                     className="hidden"
                     onChange={handleFileChange}
                   />
-                  <Button
-                    variant="outline"
-                    className="w-full h-12 rounded-2xl gap-2 border-2 hover:border-primary/60"
-                    onClick={() => fileInputRef.current?.click()}
-                    type="button"
-                  >
-                    <Upload className="w-4 h-4" />
-                    Upload PDF, DOCX, or TXT
-                  </Button>
+                  {error && <p className="text-sm text-red-500 font-medium text-center mt-3 bg-red-50 p-2 rounded-lg">{error}</p>}
                 </div>
-
-                {/* Error */}
-                {error && (
-                  <p className="text-sm text-destructive font-medium px-1">{error}</p>
-                )}
               </div>
 
-              {/* Right: Controls */}
-              <div className="space-y-8 text-left">
+              {/* Right Column: Controls */}
+              <div className="space-y-8 flex flex-col justify-between">
+                
                 {/* Mode Selection */}
-                <div className="space-y-4">
-                  <label className="text-sm font-bold uppercase tracking-widest text-muted-foreground px-1">
-                    Select Mode
-                  </label>
+                <div className="space-y-3">
+                  <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Study Mode</h3>
                   <div className="grid grid-cols-2 gap-3">
-                    <Button
-                      variant="outline"
+                    <button
                       onClick={() => setMode("quiz")}
                       className={cn(
-                        "h-16 rounded-2xl gap-3 border-2 transition-all",
+                        "flex flex-col items-center justify-center py-4 rounded-2xl border-2 transition-all gap-2",
                         mode === "quiz"
-                          ? "bg-primary text-primary-foreground border-primary shadow-lg"
-                          : "hover:border-primary/50"
+                          ? "border-indigo-500 bg-indigo-50/50 text-indigo-700 shadow-sm"
+                          : "border-slate-200 bg-white/50 text-slate-500 hover:bg-indigo-50/30 hover:border-indigo-200"
                       )}
                     >
-                      <Zap className="w-5 h-5" />
-                      <span className="font-bold">Quiz</span>
-                    </Button>
-                    <Button
-                      variant="outline"
+                      <BrainCircuit className="w-6 h-6" />
+                      <span className="font-bold text-sm">Quiz</span>
+                    </button>
+                    <button
                       onClick={() => setMode("flashcard")}
                       className={cn(
-                        "h-16 rounded-2xl gap-3 border-2 transition-all",
+                        "flex flex-col items-center justify-center py-4 rounded-2xl border-2 transition-all gap-2",
                         mode === "flashcard"
-                          ? "bg-primary text-primary-foreground border-primary shadow-lg"
-                          : "hover:border-primary/50"
+                          ? "border-purple-500 bg-purple-50/50 text-purple-700 shadow-sm"
+                          : "border-slate-200 bg-white/50 text-slate-500 hover:bg-purple-50/30 hover:border-purple-200"
                       )}
                     >
-                      <BookOpen className="w-5 h-5" />
-                      <span className="font-bold">Flashcard</span>
-                    </Button>
+                      <Layers className="w-6 h-6" />
+                      <span className="font-bold text-sm">Flashcards</span>
+                    </button>
                   </div>
                 </div>
 
-                {/* Quiz Size */}
-                <div className="space-y-4">
-                  <label className="text-sm font-bold uppercase tracking-widest text-muted-foreground px-1">
-                    {mode === "quiz" ? "Quiz Size" : "Card Count"}
-                  </label>
-                  <div className="flex gap-2">
-                    {([8, 10, 12] as QuizSize[]).map((size) => (
-                      <Button
-                        key={size}
-                        onClick={() => setQuizSize(size)}
-                        variant="secondary"
-                        className={cn(
-                          "flex-1 h-12 rounded-xl text-lg font-bold transition-all",
-                          quizSize === size
-                            ? "bg-primary text-primary-foreground shadow-md"
-                            : "hover:bg-primary/10"
-                        )}
-                      >
-                        {size}
-                      </Button>
-                    ))}
+                {/* Question Count & Intensity Group */}
+                <div className="p-5 rounded-3xl bg-slate-50/50 border border-slate-200/60 space-y-6">
+                  {/* Intensity */}
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center px-1">
+                      <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Difficulty</h3>
+                      <span className="text-xs font-semibold text-indigo-600 bg-indigo-100 px-2 py-0.5 rounded-full capitalize">{intensity}</span>
+                    </div>
+                    <div className="flex gap-2">
+                      {(["easy", "medium", "hard", "mixed"] as Intensity[]).map((int) => (
+                        <button
+                          key={int}
+                          onClick={() => setIntensity(int)}
+                          className={cn(
+                            "flex-1 py-2.5 rounded-xl text-xs font-bold capitalize transition-all",
+                            intensity === int 
+                              ? "bg-slate-800 text-white shadow-md relative scale-105"
+                              : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
+                          )}
+                        >
+                          {int}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Count */}
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center px-1">
+                      <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Questions</h3>
+                      <span className="text-xs font-semibold text-indigo-600 bg-indigo-100 px-2 py-0.5 rounded-full">{quizSize} Total</span>
+                    </div>
+                    <div className="flex bg-slate-200/50 rounded-2xl p-1 relative">
+                      {([5, 10, 15, 20] as QuizSize[]).map((size) => (
+                        <button
+                          key={size}
+                          onClick={() => setQuizSize(size)}
+                          className={cn(
+                            "flex-1 py-2.5 rounded-xl text-sm font-bold transition-all z-10",
+                            quizSize === size 
+                              ? "bg-white text-slate-900 shadow-sm"
+                              : "text-slate-500 hover:text-slate-800"
+                          )}
+                        >
+                          {size}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
 
-                {/* Info */}
-                <p className="text-xs text-muted-foreground px-1 leading-relaxed">
-                  AI will generate {quizSize} {mode === "quiz" ? "multiple-choice questions" : "flashcards"} from your notes using Groq · Llama 3.3 70B
-                </p>
+                {/* Submit Button */}
+                <button
+                  onClick={handleSubmit}
+                  disabled={isPending}
+                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-[1.5rem] py-5 px-6 flex items-center justify-between transition-all group disabled:opacity-70 disabled:pointer-events-none shadow-lg shadow-indigo-500/25 active:scale-[0.98]"
+                >
+                  <span className="text-sm font-bold tracking-widest uppercase">Start Generation</span>
+                  {isPending ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                    </div>
+                  )}
+                </button>
               </div>
             </div>
-
-            {/* Generate Button */}
-            <div className="absolute bottom-6 right-6 md:bottom-12 md:right-12">
-              <Button
-                size="icon"
-                onClick={handleSubmit}
-                disabled={isPending}
-                className="w-16 h-16 md:w-20 md:h-20 rounded-[1.5rem] md:rounded-[2rem] shadow-xl hover:scale-110 active:scale-95 transition-all disabled:opacity-60 disabled:scale-100"
-              >
-                {isPending ? (
-                  <Loader2 className="w-8 h-8 md:w-10 md:h-10 animate-spin" />
-                ) : (
-                  <ArrowRight className="w-8 h-8 md:w-10 md:h-10" />
-                )}
-              </Button>
-            </div>
-          </Card>
+          </div>
         </div>
       </main>
     </div>

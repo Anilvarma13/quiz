@@ -3,8 +3,8 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@/lib/utils";
 
 export const metadata = {
-  title: "Quizzy AI",
-  description: "Learn any topic with fun",
+  title: "𝐐𝐮𝐢𝐳𝐳𝐲 𝐀𝐈",
+  description: "Master your knowledge base with AI",
 }
 
 export default function RootLayout({
